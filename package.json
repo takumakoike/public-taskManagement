@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@types/google-apps-script": "^1.0.97",
+    "dotenv": "^16.4.7",
+    "type-fest": "^4.37.0",
+    "typescript": "^5.8.2"
+  }
+}
