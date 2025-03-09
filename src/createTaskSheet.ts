@@ -1,5 +1,5 @@
 // クライアントごとのタスクシートを作成し、タスクリストを更新
-function createClientSheet(){
+function createClientSheet(): void{
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const original = ss.getSheetByName("タスク原本")!;
 
@@ -56,3 +56,16 @@ function getAllTasks(): Task[] {
   return baseSheet.getDataRange().getValues().slice(1).filter((item) => item[1] !== "") as Task[];
 }
 
+// タスクの通し番号の中で最大値を返す
+function getMaxTaskNumber(): number {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName("タスク見積もり");
+  const lastRow = sheet?.getRange(1,1).getLastRow();
+  if(!lastRow || lastRow < 2) return 0;
+
+  const taskNumbers = sheet?.getRange(2, 1, lastRow - 1, 1).getValues().flat() as number[];
+  
+  return Math.max.apply(null, taskNumbers);
+}
+
+// タスクを追加し始めたら通し番号を振る
