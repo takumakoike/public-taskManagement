@@ -96,9 +96,9 @@ function onEdit() {
     if (!currentTaskNumber) {
       const nowDate = Utilities.formatDate(new Date(), "JST", "yyyyMMddHHmmss");
       activeCell.offset(0, -1).setValue(newTaskNumber);
-      activeCell.offset(0, 11).insertCheckboxes(); //完了・削除のためのチェックボックス
-      activeCell.offset(0, 14).insertCheckboxes(); //カレンダー連携のためのチェックボックス
-      activeCell.offset(0, 15).setValue(nowDate); //タイムスタンプをset
+      activeCell.offset(0, 13).insertCheckboxes(); //完了・削除のためのチェックボックス
+      activeCell.offset(0, 16).insertCheckboxes(); //カレンダー連携のためのチェックボックス
+      activeCell.offset(0, 17).setValue(nowDate); //タイムスタンプをset
     }
   }
 
@@ -114,26 +114,31 @@ function setTaskCalendar(row: number){
   const lastColumn = activeSheet.getLastColumn();
   const data: (string | number)[][] = activeSheet.getRange(row, 1, 1, lastColumn).getValues();
   
-  const calendar = data[3].toString();
+  const calendar = data[0][3] as string;
   const calendarId = getCalendarId(calendar);
 
-  const taskTitle = data[1].toString();
-  const taskDetail = data[2].toString();
-  const requiredTime = parseInt(data[10].toString());
-  const startDateStr = data[13].toString() + " " + data[14].toString();
+  const taskTitle = data[0][1] as string;
+  const taskDetail = data[0][2] as string;
+  const requiredTime = Number(data[0][10]);
+  const startDate = Utilities.formatDate(new Date(data[0][13]), "JST", "yyyy/MM/dd")
+  const startTime = Utilities.formatDate(new Date(data[0][14]), "JST", "HH:mm")
+  const startDateStr = startDate + " " + startTime;
   
   const start = Utilities.parseDate(startDateStr, "JST", "yyyy/MM/dd HH:mm")
   const endDate = new Date(start);
   endDate.setMinutes(endDate.getMinutes() + requiredTime)
 
   CalendarApp.getCalendarById(calendarId).createEvent(taskTitle, start, endDate, {description: taskDetail});
+  activeSheet.getRange(row, 16).setValue(false);
 }
 
-function getCalendarId(calendarName: string): string{
+function getCalendarId(calendarName: string): string {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const clientSheet = ss.getSheetByName("クライアント");
-  const data: string[][] = clientSheet?.getDataRange().getValue().slice(1);
-
-  const calendarList = data.filter((rowItem) => rowItem[1] === calendarName)
-  return calendarList[1].toString();
+  if (!clientSheet) return "";
+  
+  const data = clientSheet.getDataRange().getValues().slice(1) as string[][];
+  const calendarList = data.filter((rowItem) => rowItem[0] === calendarName);
+  // console.log(calendarList);
+  return calendarList[0][1];
 } 
