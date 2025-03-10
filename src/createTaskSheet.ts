@@ -1,7 +1,7 @@
 // クライアントごとのタスクシートを作成し、タスクリストを更新
 function createClientSheet(): void{
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const original = ss.getSheetByName("タスク原本")!;
+  const original = ss.getSheetByName("0_タスク原本")!;
 
   const clientLists = getClients();
   if(!clientLists) return;
@@ -68,4 +68,17 @@ function getMaxTaskNumber(): number {
   return Math.max.apply(null, taskNumbers);
 }
 
-// タスクを追加し始めたら通し番号を振る
+// アクティブシートにタスクを追加し始めたら通し番号を振る
+function setTaskNumber(){
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const activeSheet = ss.getActiveSheet();
+  const activeCell = activeSheet.getActiveCell();
+  const activeCol = activeCell.getColumn();
+  const activeValue: string = activeCell.getValue();
+  if(activeSheet.getName().includes("0_")) return;
+
+  const nowTaskNumber = getMaxTaskNumber();
+  if( activeCol === 2 && activeValue !== ""){
+    activeCell.offset(0, -1).setValue(nowTaskNumber + 1);
+  }
+}
