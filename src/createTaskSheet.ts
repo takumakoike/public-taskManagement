@@ -60,25 +60,43 @@ function getAllTasks(): Task[] {
 function getMaxTaskNumber(): number {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName("タスク見積もり");
-  const lastRow = sheet?.getRange(1,1).getLastRow();
-  if(!lastRow || lastRow < 2) return 0;
-
-  const taskNumbers = sheet?.getRange(2, 1, lastRow - 1, 1).getValues().flat() as number[];
+  if (!sheet) return 0;
   
-  return Math.max.apply(null, taskNumbers);
+  const lastRow = sheet.getRange(1,1).getNextDataCell(SpreadsheetApp.Direction.DOWN).getLastRow();
+  if (lastRow < 2) return 0;
+
+  // ヘッダー行を除外して2行目から取得
+  const taskNumbers = sheet.getRange(2, 1, lastRow - 1, 1)
+    .getValues()
+    .flat()
+    .filter(num => typeof num === 'number' && !isNaN(num)) as number[];
+  
+  return taskNumbers.length > 0 ? Math.max(...taskNumbers) : 0;
 }
 
 // アクティブシートにタスクを追加し始めたら通し番号を振る
-function setTaskNumber(){
+function setTaskNumber() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const activeSheet = ss.getActiveSheet();
   const activeCell = activeSheet.getActiveCell();
   const activeCol = activeCell.getColumn();
-  const activeValue: string = activeCell.getValue();
-  if(activeSheet.getName().includes("0_")) return;
+  const activeValue = activeCell.getValue();
+  
+  // 原本シートでの編集を防ぐ
+  if (activeSheet.getName().includes("0_")) {
+    console.log("原本シートでは編集できません");
+    return;
+  }
 
-  const nowTaskNumber = getMaxTaskNumber();
-  if( activeCol === 2 && activeValue !== ""){
-    activeCell.offset(0, -1).setValue(nowTaskNumber + 1);
+  // タスクタイトル列（2列目）に値が入力された場合のみ処理を実行
+  if (activeCol === 2 && activeValue !== "") {
+    const nowTaskNumber = getMaxTaskNumber();
+    const newTaskNumber = nowTaskNumber + 1;
+    
+    // タスク番号が既に存在しないことを確認
+    const currentTaskNumber = activeCell.offset(0, -1).getValue();
+    if (!currentTaskNumber) {
+      activeCell.offset(0, -1).setValue(newTaskNumber);
+    }
   }
 }
