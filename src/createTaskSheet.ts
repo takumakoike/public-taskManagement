@@ -101,11 +101,6 @@ function onEdit() {
       activeCell.offset(0, 17).setValue(nowDate); //タイムスタンプをset
     }
   }
-
-  // O列の予定セットにチェックが入ったらカレンダーにセット
-  if(activeCol === 15 && activeValue === true){
-    setTaskCalendar(activeRow);
-  } 
 }
 
 function setTaskCalendar(row: number){
@@ -142,3 +137,15 @@ function getCalendarId(calendarName: string): string {
   // console.log(calendarList);
   return calendarList[0][1];
 } 
+
+function onEditCalendar(e: any){
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const activeSheet = ss.getActiveSheet();
+  const activeCell = activeSheet.getActiveCell();
+  const col = activeCell.getColumn();
+  const val = activeCell.getValue();
+  if(col !== 16 || val !== true) return;
+
+  const row = activeCell.getRow();
+  setTaskCalendar(row);
+}
